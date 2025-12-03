@@ -193,3 +193,69 @@ func testAccListChartDestroy(s *terraform.State) error {
 
 	return nil
 }
+
+const listChartWithRadialAndColorScaleConfig = `
+resource "signalfx_list_chart" "radial_chart" {
+  name = "CPU Radial with Color Scale"
+  description = "Test chart with Radial secondary visualization and color_scale"
+
+  program_text = <<-EOF
+  data('cpu.total.idle').publish(label='CPU Idle')
+  EOF
+
+  color_by               = "Metric"
+  secondary_visualization = "Radial"
+
+  color_scale {
+    gte  = 0
+    lt   = 40
+    color = "red"
+  }
+
+  color_scale {
+    gte  = 40
+    lt   = 80
+    color = "yellow"
+  }
+
+  color_scale {
+    gte   = 80
+    color = "green"
+  }
+}
+`
+
+func TestAccListChartWithRadialAndColorScale(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccListChartDestroy,
+		Steps: []resource.TestStep{
+			// Create chart with Radial secondary visualization and color_scale (without color_by = "Scale")
+			{
+				Config: listChartWithRadialAndColorScaleConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckListChartResourceExists,
+					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "name", "CPU Radial with Color Scale"),
+					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_by", "Metric"),
+					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "secondary_visualization", "Radial"),
+					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_scale.#", "3"),
+					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_scale.0.color", "red"),
+					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_scale.0.gte", "0"),
+					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_scale.0.lt", "40"),
+					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_scale.1.color", "yellow"),
+					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_scale.1.gte", "40"),
+					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_scale.1.lt", "80"),
+					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_scale.2.color", "green"),
+					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_scale.2.gte", "80"),
+				),
+			},
+			{
+				ResourceName:      "signalfx_list_chart.radial_chart",
+				ImportState:       true,
+				ImportStateIdFunc: testAccStateIdFunc("signalfx_list_chart.radial_chart"),
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

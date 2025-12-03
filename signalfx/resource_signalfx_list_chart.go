@@ -6,7 +6,6 @@ package signalfx
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"math"
 
@@ -135,7 +134,7 @@ func listChartResource() *schema.Resource {
 			"color_scale": &schema.Schema{
 				Type:        schema.TypeSet,
 				Optional:    true,
-				Description: "Single color range including both the color to display for that range and the borders of the range",
+				Description: "Single color range including both the color to display for that range and the borders of the range. Can be used with `color_by = \"Scale\"` or with secondary visualizations (e.g., Radial, Linear)",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"color": &schema.Schema{
@@ -297,15 +296,11 @@ func getListChartOptions(d *schema.ResourceData) (*chart.Options, error) {
 	}
 	if val, ok := d.GetOk("color_by"); ok {
 		options.ColorBy = val.(string)
-		if val == "Scale" {
-			if colorScaleOptions := getColorScaleOptions(d); len(colorScaleOptions) > 0 {
-				options.ColorScale2 = colorScaleOptions
-			}
-		} else {
-			if val, ok := d.GetOk("color_scale"); ok && val != nil {
-				return nil, fmt.Errorf("Using `color_scale` without `color_by = \"Scale\"` has no effect")
-			}
-		}
+	}
+
+	// color_scale can be used with any color_by value, especially for secondary visualizations
+	if colorScaleOptions := getColorScaleOptions(d); len(colorScaleOptions) > 0 {
+		options.ColorScale2 = colorScaleOptions
 	}
 
 	var programOptions *chart.GeneralOptions
@@ -427,7 +422,8 @@ func listchartAPIToTF(d *schema.ResourceData, c *chart.Chart) error {
 	if err := d.Set("color_by", options.ColorBy); err != nil {
 		return err
 	}
-	if options.ColorBy == "Scale" && len(options.ColorScale2) > 0 {
+	// color_scale should be set whenever ColorScale2 is present, regardless of color_by
+	if len(options.ColorScale2) > 0 {
 		colorScale, err := decodeColorScale(options)
 		if err != nil {
 			return err
