@@ -12,6 +12,8 @@ The name of each value in the chart reflects the name of the plot and any associ
 
 ## Example
 
+### Basic Example
+
 ```terraform
 resource "signalfx_list_chart" "mylistchart0" {
   name = "CPU Total Idle - List"
@@ -56,6 +58,42 @@ resource "signalfx_list_chart" "mylistchart0" {
 }
 ```
 
+### Example with Secondary Visualization and Color Scale
+
+This example shows how to use `color_scale` with a secondary visualization (Radial) without requiring `color_by = "Scale"`:
+
+```terraform
+resource "signalfx_list_chart" "radial_chart" {
+  name = "CPU Usage with Radial Visualization"
+
+  program_text = <<-EOF
+    data("cpu.total.idle").publish(label="CPU Idle")
+    EOF
+
+  description = "List chart with Radial secondary visualization and color scale"
+
+  color_by               = "Metric"
+  secondary_visualization = "Radial"
+
+  color_scale {
+    gte  = 0
+    lt   = 40
+    color = "red"
+  }
+
+  color_scale {
+    gte  = 40
+    lt   = 80
+    color = "yellow"
+  }
+
+  color_scale {
+    gte   = 80
+    color = "green"
+  }
+}
+```
+
 ## Arguments
 
 The following arguments are supported in the resource block:
@@ -82,7 +120,7 @@ The following arguments are supported in the resource block:
   * `enabled` True or False depending on if you want the property to be shown or hidden.
 * `max_precision` - (Optional) Maximum number of digits to display when rounding values up or down.
 * `secondary_visualization` - (Optional) The type of secondary visualization. Can be `None`, `Radial`, `Linear`, or `Sparkline`. If unset, the Splunk Observability Cloud default is used (`Sparkline`).
-* `color_scale` - (Optional. `color_by` must be `"Scale"`) Single color range including both the color to display for that range and the borders of the range. Example: `[{ gt = 60, color = "blue" }, { lte = 60, color = "yellow" }]`. Look at this [link](https://docs.splunk.com/observability/en/data-visualization/charts/chart-options.html).
+* `color_scale` - (Optional) Single color range including both the color to display for that range and the borders of the range. Can be used with `color_by = "Scale"` or with any `color_by` value when using secondary visualizations (e.g., `Radial`, `Linear`). Example: `[{ gt = 60, color = "blue" }, { lte = 60, color = "yellow" }]`. Look at this [link](https://docs.splunk.com/observability/en/data-visualization/charts/chart-options.html).
   * `gt` - (Optional) Indicates the lower threshold non-inclusive value for this range.
   * `gte` - (Optional) Indicates the lower threshold inclusive value for this range.
   * `lt` - (Optional) Indicates the upper threshold non-inculsive value for this range.
