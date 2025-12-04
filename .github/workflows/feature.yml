@@ -2,9 +2,9 @@ name: Build Terraform Provider
 
 on:
   workflow_dispatch: {}          # allow manual runs from UI
-  push:
-    branches:
-      - "feature/*"
+  # push:
+  #   branches:
+  #     - "feature/*"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -30,3 +30,9 @@ jobs:
         with:
           name: terraform-provider-signalfx-linux-amd64
           path: terraform-provider-signalfx
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: terraform-provider-signalfx
