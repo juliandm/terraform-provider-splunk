@@ -3,8 +3,8 @@ name: Build Terraform Provider
 on:
   workflow_dispatch: {}          # allow manual runs from UI
   push:
-    branches:
-      - "feature/add-radial-color-scale-in-list-chart"
+    tags:
+      - 'v*'
 jobs:
   build:
     runs-on: ubuntu-latest
