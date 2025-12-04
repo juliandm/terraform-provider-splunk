@@ -1,13 +1,21 @@
-name: Build Terraform Provider
+name: Build Terraform Provider (manual only, linux + mac)
 
 on:
-  workflow_dispatch: {}          # allow manual runs from UI
+  workflow_dispatch: {}   # only manual trigger
   push:
     tags:
       - 'v*'
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
 
     steps:
       - name: Checkout
@@ -16,23 +24,18 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22"     # or whatever the provider uses
+          go-version: "1.22"
+          cache: false
 
-      - name: Build linux_amd64 binary
+      - name: Build provider for ${{ matrix.goos }}_${{ matrix.goarch }}
         env:
-          GOOS: linux
-          GOARCH: amd64
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
         run: |
-          go build -o terraform-provider-signalfx .
+          go build -o terraform-provider-signalfx-${GOOS}-${GOARCH} .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: terraform-provider-signalfx-linux-amd64
-          path: terraform-provider-signalfx
-
-      - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: terraform-provider-signalfx
+          name: terraform-provider-signalfx-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: terraform-provider-signalfx-${{ matrix.goos }}-${{ matrix.goarch }}
