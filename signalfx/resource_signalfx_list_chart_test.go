@@ -219,7 +219,8 @@ resource "signalfx_list_chart" "radial_chart" {
   }
 
   color_scale {
-    gte   = 80
+    gte  = 80
+    lte  = 999999
     color = "green"
   }
 }
@@ -248,6 +249,7 @@ func TestAccListChartWithRadialAndColorScale(t *testing.T) {
 					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_scale.1.lt", "80"),
 					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_scale.2.color", "green"),
 					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_scale.2.gte", "80"),
+					resource.TestCheckResourceAttr("signalfx_list_chart.radial_chart", "color_scale.2.lte", "999999"),
 				),
 			},
 			{

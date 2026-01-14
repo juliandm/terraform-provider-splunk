@@ -27,7 +27,8 @@ resource "signalfx_list_chart" "radial_chart" {
   }
 
   color_scale {
-    gte   = 80
+    gte  = 80
+    lte  = 999999
     color = "green"
   }
 }

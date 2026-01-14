@@ -88,7 +88,8 @@ resource "signalfx_list_chart" "radial_chart" {
   }
 
   color_scale {
-    gte   = 80
+    gte  = 80
+    lte  = 999999
     color = "green"
   }
 }
@@ -120,7 +121,7 @@ The following arguments are supported in the resource block:
   * `enabled` True or False depending on if you want the property to be shown or hidden.
 * `max_precision` - (Optional) Maximum number of digits to display when rounding values up or down.
 * `secondary_visualization` - (Optional) The type of secondary visualization. Can be `None`, `Radial`, `Linear`, or `Sparkline`. If unset, the Splunk Observability Cloud default is used (`Sparkline`).
-* `color_scale` - (Optional) Single color range including both the color to display for that range and the borders of the range. Can be used with `color_by = "Scale"` or with any `color_by` value when using secondary visualizations (e.g., `Radial`, `Linear`). Example: `[{ gt = 60, color = "blue" }, { lte = 60, color = "yellow" }]`. Look at this [link](https://docs.splunk.com/observability/en/data-visualization/charts/chart-options.html).
+* `color_scale` - (Optional) Single color range including both the color to display for that range and the borders of the range. Can be used with `color_by = "Scale"` or with any `color_by` value when using secondary visualizations (e.g., `Radial`, `Linear`). **Note:** Each color scale entry must define both a lower bound (using `gt` or `gte`) and an upper bound (using `lt` or `lte`) - open-ended ranges are not allowed. Example: `[{ gt = 60, lte = 100, color = "blue" }, { gte = 0, lte = 60, color = "yellow" }]`. Look at this [link](https://docs.splunk.com/observability/en/data-visualization/charts/chart-options.html).
   * `gt` - (Optional) Indicates the lower threshold non-inclusive value for this range.
   * `gte` - (Optional) Indicates the lower threshold inclusive value for this range.
   * `lt` - (Optional) Indicates the upper threshold non-inculsive value for this range.
